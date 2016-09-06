@@ -20,15 +20,15 @@
 // Copyright (c) 1992-1993 The Regents of the University of California.
 // All rights reserved.  See copyright.h for copyright notice and limitation 
 // of liability and disclaimer of warranty provisions.
-
 #include "copyright.h"
 #include "system.h"
 #include "syscall.h"
 #include "console.h"
 #include "synch.h"
-
-//----------------------------------------------------------------------
-// ExceptionHandler
+#include "machine.h"
+#include "translate.h"
+#include "utility.h"
+#include "addrspace.h"
 // 	Entry point into the Nachos kernel.  Called when a user program
 //	is executing, and either does a syscall, or generates an addressing
 //	or arithmetic exception.
@@ -74,7 +74,7 @@ void
 ExceptionHandler(ExceptionType which)
 {
     int type = machine->ReadRegister(2);
-    int memval, vaddr, printval, tempval, exp;
+	 int memval, vaddr, printval, tempval, exp;
     unsigned printvalus;        // Used for printing in hex
     if (!initializedConsoleSemaphores) {
        readAvail = new Semaphore("read avail", 0);
@@ -126,6 +126,46 @@ ExceptionHandler(ExceptionType which)
        machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
        machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
     }
+    else if ((which == SyscallException) && (type == SYScall_GetReg)) {
+	machine->WriteRegister(2,machine->ReadRegister(machine->ReadRegister(4)));	
+       // Advance program counter
+       machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+       machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+       machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+    }
+    else if ((which == SyscallException) && (type == SYScall_GetPA)) {
+	int virtAddr = machine->ReadRegister(4);
+	unsigned int vpn,offset,pageFrame;
+	TranslationEntry *entry;
+	vpn = (unsigned)virtAddr/PageSize;
+	offset = (unsigned) virtAddr%PageSize;
+	
+	if(vpn>machine->pageTableSize) {
+		machine->WriteRegister(2,-1);
+		machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+       		machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+       		machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+	}
+	else if (!machine->NachOSpageTable[vpn].valid){
+		machine->WriteRegister(2,-1);
+		machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+       		machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+       		machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+	}
+	entry = &(machine->NachOSpageTable[vpn]);
+	pageFrame = entry->physicalPage;
+	if(pageFrame>=NumPhysPages){
+		machine->WriteRegister(2,-1);
+		 machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+       		machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+       		machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+	}    
+	machine->WriteRegister(2,(pageFrame*PageSize + offset));
+	machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+       	machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+       	machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+   }
+
     else if ((which == SyscallException) && (type == SYScall_PrintString)) {
        vaddr = machine->ReadRegister(4);
        machine->ReadMem(vaddr, 1, &memval);
@@ -140,6 +180,7 @@ ExceptionHandler(ExceptionType which)
        machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
        machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
     }
+	
     else if ((which == SyscallException) && (type == SYScall_PrintIntHex)) {
        printvalus = (unsigned)machine->ReadRegister(4);
        writeDone->P() ;
@@ -157,15 +198,7 @@ ExceptionHandler(ExceptionType which)
        machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
        machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
        machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
-    }
-    else if ((which == SyscallException) && (type == SYScall_GetReg)) {
-        machine->WriteRegister(2, machine->ReadRegister(machine->ReadRegister(4)));
-	//Advance program counters.
-	machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
-	machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
-	machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4); 
-    }
-    else {
+    } else {
 	printf("Unexpected user mode exception %d %d\n", which, type);
 	ASSERT(FALSE);
     }
