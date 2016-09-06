@@ -30,6 +30,9 @@
 #include "utility.h"
 #include "addrspace.h"
 #include "stats.h"
+#include "thread.h"
+#include "switch.h"
+#include "scheduler.h"
 // 	Entry point into the Nachos kernel.  Called when a user program
 //	is executing, and either does a syscall, or generates an addressing
 //	or arithmetic exception.
@@ -174,6 +177,17 @@ ExceptionHandler(ExceptionType which)
        machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
     }
     else if ((which == SyscallException) && (type == SYScall_Sleep)) {
+						// Advance program counter
+       machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+       machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+       machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+    }
+    else if ((which == SyscallException) && (type == SYScall_Yield)) {
+	NachOSThread *nextThread;
+	nextThread = scheduler->FindNextThreadToRun();
+       if(nextThread != NULL){
+		scheduler->Schedule(nextThread);
+	}
 						// Advance program counter
        machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
        machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
