@@ -24,6 +24,9 @@
 					// execution stack, for detecting 
 					// stack overflows
 
+int tid = 0;
+int ptid = -1;
+
 //----------------------------------------------------------------------
 // NachOSThread::NachOSThread
 // 	Initialize a thread control block, so that we can then call
@@ -38,6 +41,8 @@ NachOSThread::NachOSThread(char* threadName)
     stackTop = NULL;
     stack = NULL;
     status = JUST_CREATED;
+    pid = tid++;
+    ppid = (ptid == -1)?0:ptid++;
 #ifdef USER_PROGRAM
     space = NULL;
 #endif
@@ -143,6 +148,7 @@ NachOSThread::CheckOverflow()
 void
 NachOSThread::FinishThread ()
 {
+    ptid--;
     (void) interrupt->SetLevel(IntOff);		
     ASSERT(this == currentThread);
     

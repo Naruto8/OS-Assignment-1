@@ -101,6 +101,10 @@ class NachOSThread {
     void setStatus(ThreadStatus st) { status = st; }
     char* getName() { return (name); }
     void Print() { printf("%s, ", name); }
+
+    int GetPID() { return (pid); }		//Gets the thread ID
+    int GetPPID() { return (ppid); }		//Gets the ID of parent thread
+
   private:
     // some of the private data for this class is listed above
     
