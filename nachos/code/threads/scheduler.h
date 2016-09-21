@@ -23,14 +23,18 @@ class NachOSscheduler {
     ~NachOSscheduler();			// De-allocate ready list
 
     void ThreadIsReadyToRun(NachOSThread* thread);	// Thread can be dispatched.
+    void ThreadSleep(NachOSThread* thread,int waketime);
+    int ThreadWake (int time);
+
     NachOSThread* FindNextThreadToRun();		// Dequeue first thread on the ready 
 					// list, if any, and return thread.
     void Schedule(NachOSThread* nextThread);	// Cause nextThread to start running
     void Print();			// Print contents of ready list
-    
+ List *ThreadSleeping; 
   private:
     List *readyThreadList;  		// queue of threads that are ready to run,
 				// but not running
+    
 };
 
 #endif // SCHEDULER_H

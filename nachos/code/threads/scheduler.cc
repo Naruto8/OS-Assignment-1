@@ -30,6 +30,7 @@
 NachOSscheduler::NachOSscheduler()
 { 
     readyThreadList = new List; 
+    ThreadSleeping = new List;
 } 
 
 //----------------------------------------------------------------------
@@ -40,6 +41,7 @@ NachOSscheduler::NachOSscheduler()
 NachOSscheduler::~NachOSscheduler()
 { 
     delete readyThreadList; 
+    delete ThreadSleeping;
 } 
 
 //----------------------------------------------------------------------
@@ -58,7 +60,11 @@ NachOSscheduler::ThreadIsReadyToRun (NachOSThread *thread)
     thread->setStatus(READY);
     readyThreadList->Append((void *)thread);
 }
-
+void
+NachOSscheduler::ThreadSleep (NachOSThread *thread,int waketime)
+{
+    ThreadSleeping->SortedInsert((void *)thread,waketime);
+}
 //----------------------------------------------------------------------
 // NachOSscheduler::FindNextThreadToRun
 // 	Return the next thread to be scheduled onto the CPU.
@@ -66,6 +72,22 @@ NachOSscheduler::ThreadIsReadyToRun (NachOSThread *thread)
 // Side effect:
 //	Thread is removed from the ready list.
 //----------------------------------------------------------------------
+
+int
+NachOSscheduler::ThreadWake (int time)
+{
+	NachOSThread *thread;
+	int key;
+	thread =(NachOSThread *)ThreadSleeping->SortedRemove(&key);
+	if(key == time){
+		scheduler->ThreadIsReadyToRun(thread);
+ 		return 1;
+	}
+	else {
+		ThreadSleeping->SortedInsert(thread,key);
+		return 0;
+	}
+}
 
 NachOSThread *
 NachOSscheduler::FindNextThreadToRun ()

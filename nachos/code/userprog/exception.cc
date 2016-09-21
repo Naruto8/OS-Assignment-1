@@ -20,6 +20,7 @@
 // Copyright (c) 1992-1993 The Regents of the University of California.
 // All rights reserved.  See copyright.h for copyright notice and limitation 
 // of liability and disclaimer of warranty provisions.
+#include "scheduler.h"
 #include "copyright.h"
 #include "system.h"
 #include "syscall.h"
@@ -32,7 +33,6 @@
 #include "stats.h"
 #include "thread.h"
 #include "switch.h"
-#include "scheduler.h"
 // 	Entry point into the Nachos kernel.  Called when a user program
 //	is executing, and either does a syscall, or generates an addressing
 //	or arithmetic exception.
@@ -177,6 +177,14 @@ ExceptionHandler(ExceptionType which)
        machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
     }
     else if ((which == SyscallException) && (type == SYScall_Sleep)) {
+       int WakeUpTime = (machine->ReadRegister(4)+(stats->totalTicks);
+       if(WakeUpTime == 0) currentThread->YieldCPU();       
+	else{
+		scheduler->ThreadSleep(currentThread,WakeUpTime);
+		IntStatus oldLevel = interrupt->SetLevel(IntOff);
+		currentThread->PutThreadToSleep();
+		(void)interrupt->SetLevel(oldLevel);
+	}
 						// Advance program counter
        machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
        machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
