@@ -83,16 +83,20 @@ ProcessAddrSpace::ProcessAddrSpace(OpenFile *executable)
     DEBUG('a', "Initializing address space, num pages %d, size %d\n", 
 					numPagesInVM, size);
 // first, set up the translation 
-    NachOSpageTable = new TranslationEntry[numPagesInVM];
-    for (i = 0; i < numPagesInVM; i++) {
-	NachOSpageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
-	NachOSpageTable[i].physicalPage = i;
-	NachOSpageTable[i].valid = TRUE;
-	NachOSpageTable[i].use = FALSE;
-	NachOSpageTable[i].dirty = FALSE;
-	NachOSpageTable[i].readOnly = FALSE;  // if the code segment was entirely on 
-					// a separate page, we could set its 
-					// pages to be read-only
+    NachOSpageTable = new TranslationEntry[numPhysPages];
+    for (i = 0; i < numPhysPage; i++) {
+	if(i<numPagesInVM){
+		NachOSpageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
+		NachOSpageTable[i].physicalPage = i;
+		NachOSpageTable[i].valid = TRUE;
+		NachOSpageTable[i].use = FALSE;
+		NachOSpageTable[i].dirty = FALSE;
+		NachOSpageTable[i].readOnly = FALSE;  // if the code segment was entirely on 
+						// a separate page, we could set its 
+						// pages to be read-only
+	}
+	else
+		NachOSpageTable[i].valid = FALSE;
     }
     
 // zero out the entire address space, to zero the unitialized data segment 

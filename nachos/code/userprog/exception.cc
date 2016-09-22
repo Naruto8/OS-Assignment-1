@@ -139,7 +139,16 @@ ExceptionHandler(ExceptionType which)
     }
     else if ((which == SyscallException) && (type == SYScall_Fork)){
        nachOSThread(child);	
-
+       // Allocate space to child
+	for ( int i = numPagesinVM; i < 2*numPagesinVM-1; i++) {
+		NachOSpageTable[i].virtualPage = i-numPagesinVM;
+		NachOSpageTable[i].physicalPage = i;
+		NachOSpageTable[i].use = FALSE;
+		NachOSpageTable[i].dirty= FALSE;
+		NachOSpageTable[i].readOnly = FALSE;
+		NachOSpageTable[i].valid = TRUE;
+	}
+	//copy pocess address space to child space
        // Advance program counter
        machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
        machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
