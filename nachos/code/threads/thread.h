@@ -105,7 +105,9 @@ class NachOSThread {
     int GetPID() { return (pid); }		//Gets the thread ID
     int GetPPID() { return (ppid); }		//Gets the ID of parent thread
 
+// First frame on thread execution stack; 
   private:
+
     // some of the private data for this class is listed above
     
     int* stack; 	 		// Bottom of the stack 
@@ -129,9 +131,11 @@ class NachOSThread {
   public:
     void SaveUserState();		// save user-level register state
     void RestoreUserState();		// restore user-level register state
-
-    ProcessAddrSpace *space;			// User code this thread is running.
+    ProcessAddrSpace *space;                    // User code this thread is running.
+    void AllocateSpaceToChild(NachOSThread* child);
+    void CopyAddressSpaceToChild(NachOSThread* child); //Copies the content to child
 #endif
+
 };
 
 // Magical machine-dependent routines, defined in switch.s

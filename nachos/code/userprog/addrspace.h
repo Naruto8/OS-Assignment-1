@@ -15,7 +15,7 @@
 
 #include "copyright.h"
 #include "filesys.h"
-
+//#include "thread.h"
 #define UserStackSize		1024 	// increase this as necessary!
 
 class ProcessAddrSpace {
@@ -30,10 +30,13 @@ class ProcessAddrSpace {
 
     void SaveStateOnSwitch();			// Save/restore address space-specific
     void RestoreStateOnSwitch();		// info on a context switch 
-
-  private:
+#ifdef USER_PROGRAM
+    int VMpageSize();
+#endif    
+int StartingAddress;
     TranslationEntry *NachOSpageTable;	// Assume linear page table translation
 					// for now!
+  private:
     unsigned int numPagesInVM;		// Number of pages in the virtual 
 					// address space
 };
