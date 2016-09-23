@@ -61,6 +61,8 @@ ProcessAddrSpace::ProcessAddrSpace(OpenFile *executable)
 {
     NoffHeader noffH;
     unsigned int i, size;
+    
+    StartingAddress = 0;
 
     executable->ReadAt((char *)&noffH, sizeof(noffH), 0);
     if ((noffH.noffMagic != NOFFMAGIC) && 
@@ -125,6 +127,13 @@ ProcessAddrSpace::~ProcessAddrSpace()
    delete NachOSpageTable;
 }
 
+#ifdef USER_PROGRAM
+//Returns the number of pages in VM
+int ProcessAddrSpace::VMpageSize()
+{
+	return numPagesInVM;
+}
+#endif
 //----------------------------------------------------------------------
 // ProcessAddrSpace::InitUserCPURegisters
 // 	Set the initial values for the user-level register set.

@@ -138,7 +138,13 @@ ExceptionHandler(ExceptionType which)
        machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
     }
     else if ((which == SyscallException) && (type == SYScall_Fork)){
-       nachOSThread(child);	
+       NachOSThread *child = new NachOSThread("forkChild");
+
+       //Allocae space to child
+       currentThread->AllocateSpaceToChild(child);
+
+       //Copy content in child
+       currentThread->CopyAddressSpaceToChild(child);       	
 
        // Advance program counter
        machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
@@ -200,7 +206,7 @@ ExceptionHandler(ExceptionType which)
        machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
     }
     else if ((which == SyscallException) && (type == SYScall_Sleep)) {
-       int WakeUpTime = (machine->ReadRegister(4)+(stats->totalTicks);
+       int WakeUpTime = machine->ReadRegister(4)+(stats->totalTicks);
        if(WakeUpTime == 0) currentThread->YieldCPU();       
 	else{
 		scheduler->ThreadSleep(currentThread,WakeUpTime);
