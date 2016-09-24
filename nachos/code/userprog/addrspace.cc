@@ -19,6 +19,7 @@
 #include "system.h"
 #include "addrspace.h"
 #include "noff.h"
+int nextFreePage = 0;
 
 //----------------------------------------------------------------------
 // SwapHeader
@@ -114,7 +115,7 @@ ProcessAddrSpace::ProcessAddrSpace(OpenFile *executable)
         executable->ReadAt(&(machine->mainMemory[noffH.initData.virtualAddr]),
 			noffH.initData.size, noffH.initData.inFileAddr);
     }
-    nextFreePage += numPagesInVM + 1;
+    nextFreePage += numPagesInVM;
 }
 
 #ifdef THREAD_H
@@ -124,7 +125,7 @@ ProcessAddrSpace::ProcessAddrSpace(OpenFile *executable)
 //	Allocate space for that forked child
 //----------------------------------------------------------------------
 
-ProcessAddrSpace::ProcessAddrSpace(int parentsize, int initialPageNumber)
+ProcessAddrSpace::ProcessAddrSpace(int parentsize)
 {
     unsigned int i, size;
     size = parentsize;
@@ -133,13 +134,13 @@ ProcessAddrSpace::ProcessAddrSpace(int parentsize, int initialPageNumber)
     NachOSpageTable = new TranslationEntry[numPagesInVM];
     for(i = 0; i < numPagesInVM; i++){
         NachOSpageTable[i].virtualPage = i;
-        NachOSpageTable[i].physicalPage = (i + initialPageNumber);
+        NachOSpageTable[i].physicalPage = (i + nextFreePage);
         NachOSpageTable[i].valid = TRUE;
         NachOSpageTable[i].use = FALSE;
         NachOSpageTable[i].dirty = FALSE;
         NachOSpageTable[i].readOnly = FALSE;
     }
-    nextFreePage += numPagesInVM +1;
+    nextFreePage += numPagesInVM;
 }
 
 #endif

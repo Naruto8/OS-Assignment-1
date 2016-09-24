@@ -112,7 +112,7 @@ ExceptionHandler(ExceptionType which)
 		DEBUG('a', "Shutdown, initiated by user program.\n");
 		interrupt->Halt();
 	}
-	else if((which == SyscallException) && (type == SYScall_Halt)){
+	else if((which == SyscallException) && (type == SYScall_Exit)){
 		DEBUG('a', "Shutdown, initiated by user program.\n");
 		interrupt->Halt();	
 	}
@@ -167,7 +167,7 @@ ExceptionHandler(ExceptionType which)
 		child->SetPPID(currentThread->GetPID());
 
 		int parentsize = currentThread->space->VMpageSize()*PageSize;
-		ProcessAddrSpace *childspace = new ProcessAddrSpace(parentsize, nextFreePage);
+		ProcessAddrSpace *childspace = new ProcessAddrSpace(parentsize);
 
 		//Allocate space to child
 		child->space = childspace;
@@ -181,7 +181,7 @@ ExceptionHandler(ExceptionType which)
 		machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
 		machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
 		machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
-
+		printf("here\n");
 		//saving process register of child
 		machine->WriteRegister(2,0);
 		child->SaveUserState();
