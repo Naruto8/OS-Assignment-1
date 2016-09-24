@@ -114,7 +114,7 @@ ProcessAddrSpace::ProcessAddrSpace(OpenFile *executable)
         executable->ReadAt(&(machine->mainMemory[noffH.initData.virtualAddr]),
 			noffH.initData.size, noffH.initData.inFileAddr);
     }
-
+    nextFreePage += numPagesInVM + 1;
 }
 
 #ifdef THREAD_H
@@ -124,21 +124,22 @@ ProcessAddrSpace::ProcessAddrSpace(OpenFile *executable)
 //	Allocate space for that forked child
 //----------------------------------------------------------------------
 
-ProcessAddrSpace::ProcessAddrSpace(int parentsize)
+ProcessAddrSpace::ProcessAddrSpace(int parentsize, int initialPageNumber)
 {
-   unsigned int i, size;
-   size = parentsize;
-   numPagesInVM = size/PageSize;
-   ASSERT(2*numPagesInVM <= NumPhysPages);
-   NachOSpageTable = new TranslationEntry[numPagesInVM];
-   for(i = 0; i < numPagesInVM; i++){
-	NachOSpageTable[i].virtualPage = i;
-	NachOSpageTable[i].physicalPage = (i + numPagesInVM);
-	NachOSpageTable[i].valid = TRUE;
-	NachOSpageTable[i].use = FALSE;
-	NachOSpageTable[i].dirty = FALSE;
-	NachOSpageTable[i].readOnly = FALSE;
-   }
+    unsigned int i, size;
+    size = parentsize;
+    numPagesInVM = size/PageSize;
+    ASSERT(2*numPagesInVM <= NumPhysPages);
+    NachOSpageTable = new TranslationEntry[numPagesInVM];
+    for(i = 0; i < numPagesInVM; i++){
+        NachOSpageTable[i].virtualPage = i;
+        NachOSpageTable[i].physicalPage = (i + initialPageNumber);
+        NachOSpageTable[i].valid = TRUE;
+        NachOSpageTable[i].use = FALSE;
+        NachOSpageTable[i].dirty = FALSE;
+        NachOSpageTable[i].readOnly = FALSE;
+    }
+    nextFreePage += numPagesInVM +1;
 }
 
 #endif

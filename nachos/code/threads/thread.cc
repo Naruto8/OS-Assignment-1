@@ -49,25 +49,9 @@ NachOSThread::NachOSThread(char* threadName)
 #ifdef USER_PROGRAM
 //Copy the content of parent to child
 void NachOSThread::CopyAddressSpaceToChild(NachOSThread *child){
-    for(int i = 0; i<this->space->VMpageSize()*PageSize ; i++)
-	machine->mainMemory[i+this->space->StartingAddress+(this->space->VMpageSize())*PageSize] = machine->mainMemory[i+this->space->StartingAddress];
+    for(int i = 0; i < this->space->VMpageSize()*PageSize ; i++)
+	machine->mainMemory[i + this->space->StartingAddress + (this->space->VMpageSize())*PageSize] = machine->mainMemory[i + this->space->StartingAddress];
 }
-//Allocate Space for child
-void NachOSThread::AllocateSpaceToChild(NachOSThread* child){
-    child->space->StartingAddress = this->space->StartingAddress + this->space->VMpageSize()*PageSize;
-    child->space->NachOSpageTable = new TranslationEntry[this->space->VMpageSize()];
-    for (int i = 0; i < this->space->VMpageSize(); i++) {
-        child->space->NachOSpageTable[i].virtualPage = i;       // for now, virtual page # = phys page #
-        child->space->NachOSpageTable[i].physicalPage = i+this->space->VMpageSize();
-        child->space->NachOSpageTable[i].valid = TRUE;
-        child->space->NachOSpageTable[i].use = FALSE;
-        child->space->NachOSpageTable[i].dirty = FALSE;
-        child->space->NachOSpageTable[i].readOnly = FALSE;  // if the code segment was entirely on 
-                                        // a separate page, we could set its 
-                                        // pages to be read-only
-    }
-}
-
 #endif
 //----------------------------------------------------------------------
 // NachOSThread::~NachOSThread

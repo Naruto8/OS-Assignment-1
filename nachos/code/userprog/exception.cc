@@ -167,11 +167,13 @@ ExceptionHandler(ExceptionType which)
 		child->SetPPID(currentThread->GetPID());
 
 		int parentsize = currentThread->space->VMpageSize()*PageSize;
-		ProcessAddrSpace *childspace = new ProcessAddrSpace(parentsize);
+		ProcessAddrSpace *childspace = new ProcessAddrSpace(parentsize, nextFreePage);
 
 		//Allocate space to child
 		child->space = childspace;
 
+		//Set child's starting address
+		child->space->StartingAddress = currentThread->space->StartingAddress + parentsize +1;
 		//Copy contents to child
 		currentThread->CopyAddressSpaceToChild(child);
 
