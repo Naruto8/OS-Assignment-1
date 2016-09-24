@@ -99,7 +99,7 @@ NachOSThread::ThreadFork(VoidFunctionPtr func, int arg)
 {
     DEBUG('t', "Forking thread \"%s\" with func = 0x%x, arg = %d\n",
 	  name, (int) func, arg);
-    
+
     AllocateThreadStack(func, arg);
 
     IntStatus oldLevel = interrupt->SetLevel(IntOff);

@@ -186,11 +186,13 @@ ExceptionHandler(ExceptionType which)
 		machine->WriteRegister(2,0);
 		child->SaveUserState();
 
-		//returning PID of child to parent
+		//saving process register of parent
 		machine->WriteRegister(2,child->GetPID());
-
+		//currentThread->SaveUserState();
+		printf("beforeThreadfork");
 		//initial function
-		child->ThreadFork(InitialFunction, 0);
+		currentThread->ThreadFork(InitialFunction, 0);
+		printf("afterThreadFork\n");
 	}
 	else if ((which == SyscallException) && (type == SYScall_GetPA)) {
 		int virtAddr = machine->ReadRegister(4);

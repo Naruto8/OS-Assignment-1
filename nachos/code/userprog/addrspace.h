@@ -17,7 +17,6 @@
 #include "filesys.h"
 //#include "thread.h"
 #define UserStackSize		1024 	// increase this as necessary!
-int nextFreePage = 0;
 class ProcessAddrSpace {
   public:
     ProcessAddrSpace(OpenFile *executable);	// Create an address space,
