@@ -58,7 +58,7 @@ static Semaphore *writeDone;
 static void ReadAvail(int arg) { readAvail->V(); }
 static void WriteDone(int arg) { writeDone->V(); }
 
-void IntialFunction(){
+void InitialFunction(int arg){
       DEBUG('t', "Now in thread \"%s\"\n", currentThread->getName());
 
       // If the old thread gave up the processor because it was finishing,
@@ -160,11 +160,11 @@ ExceptionHandler(ExceptionType which)
     }
     else if ((which == SyscallException) && (type == SYScall_Fork)){
        NachOSThread *child = new NachOSThread("forkChild");
-
-       //Allocae space to child
-       currentThread->AllocateSpaceToChild(child);
-
-       //Copy content in child
+       int parentsize = currentThread->space->VMpageSize()*PageSize;
+       ProcessAddrSpace *childspace = new ProcessAddrSpace(parentsize);
+       //Allocate space to child
+       child->space = childspace;
+       //Copy contents to child
        currentThread->CopyAddressSpaceToChild(child);       	
 
       	//saving process register of parent
@@ -176,10 +176,7 @@ ExceptionHandler(ExceptionType which)
         child->SaveUserState(); 
 
         //initial function
-        child->AllocateThreadStack(IntialFunction, 0);
-        IntStatus oldLevel = interrupt->SetLevel(IntOff);
-        scheduler->ThreadIsReadyToRun(child);
-        (void) interrupt->SetLevel(oldLevel);
+       currentThread->ThreadFork(InitialFunction, 0);
        // Advance program counter
        machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
        machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));

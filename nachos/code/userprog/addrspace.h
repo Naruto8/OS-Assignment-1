@@ -23,6 +23,7 @@ class ProcessAddrSpace {
     ProcessAddrSpace(OpenFile *executable);	// Create an address space,
 					// initializing it with the program
 					// stored in the file "executable"
+    ProcessAddrSpace(int parentsize);	// Create space for child with parent size
     ~ProcessAddrSpace();			// De-allocate an address space
 
     void InitUserCPURegisters();		// Initialize user-level CPU registers,

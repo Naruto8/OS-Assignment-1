@@ -117,6 +117,32 @@ ProcessAddrSpace::ProcessAddrSpace(OpenFile *executable)
 
 }
 
+#ifdef THREAD_H
+
+//----------------------------------------------------------------------
+//	ProcessAddrSpace constructor for forked child
+//	Allocate space for that forked child
+//----------------------------------------------------------------------
+
+ProcessAddrSpace::ProcessAddrSpace(int parentsize)
+{
+   unsigned int i, size;
+   size = parentsize;
+   numPagesInVM = size/PageSize;
+   ASSERT(2*numPagesInVM <= NumPhysPages);
+   NachOSpageTable = new TranslationEntry[numPagesInVM];
+   for(i = 0; i < numPagesInVM; i++){
+	NachOSpageTable[i].virtualPage = i;
+	NachOSpageTable[i].physicalPage = (i + numPagesInVM);
+	NachOSpageTable[i].valid = TRUE;
+	NachOSpageTable[i].use = FALSE;
+	NachOSpageTable[i].dirty = FALSE;
+	NachOSpageTable[i].readOnly = FALSE;
+   }
+}
+
+#endif
+
 //----------------------------------------------------------------------
 // ProcessAddrSpace::~ProcessAddrSpace
 // 	Dealloate an address space.  Nothing for now!
