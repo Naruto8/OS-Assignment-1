@@ -56,7 +56,6 @@ void
 NachOSscheduler::ThreadIsReadyToRun (NachOSThread *thread)
 {
     DEBUG('t', "Putting thread %s on ready list.\n", thread->getName());
-
     thread->setStatus(READY);
     readyThreadList->Append((void *)thread);
 }

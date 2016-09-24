@@ -19,7 +19,6 @@
 #include "system.h"
 #include "addrspace.h"
 #include "noff.h"
-int nextFreePage = 0;
 
 //----------------------------------------------------------------------
 // SwapHeader
