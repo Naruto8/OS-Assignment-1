@@ -115,6 +115,12 @@ NachOSThread::ThreadFork(VoidFunctionPtr func, int arg)
     (void) interrupt->SetLevel(oldLevel);
 }    
 
+int
+NachOSThread::numInstr()
+{
+    // return machine->NumInstr();
+}
+
 //----------------------------------------------------------------------
 // NachOSThread::CheckOverflow
 // 	Check a thread's stack to see if it has overrun the space
