@@ -19,7 +19,6 @@
 #include "switch.h"
 #include "synch.h"
 #include "system.h"
-
 #define STACK_FENCEPOST 0xdeadbeef	// this is put at the top of the
 					// execution stack, for detecting 
 					// stack overflows
@@ -114,12 +113,6 @@ NachOSThread::ThreadFork(VoidFunctionPtr func, int arg)
 					// are disabled!
     (void) interrupt->SetLevel(oldLevel);
 }    
-
-int
-NachOSThread::numInstr()
-{
-    // return machine->NumInstr();
-}
 
 //----------------------------------------------------------------------
 // NachOSThread::CheckOverflow

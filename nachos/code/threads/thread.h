@@ -105,7 +105,6 @@ class NachOSThread {
     int GetPID();		//Gets the thread ID
     int GetPPID();		//Gets the ID of parent thread
     void SetPPID(int temp) { ppid = temp; }
-    int numInstr();     
     int childList[10];
     int numberOfChild;
 // First frame on thread execution stack; 
