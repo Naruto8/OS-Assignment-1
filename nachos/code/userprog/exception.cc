@@ -59,9 +59,7 @@ static void ReadAvail(int arg) { readAvail->V(); }
 static void WriteDone(int arg) { writeDone->V(); }
 
 void InitialFunction(int arg){
-      DEBUG('t', "Now in thread \"%s\"\n", currentThread->getName());
 
-		printf("hre\n");
       // If the old thread gave up the processor because it was finishing,
       // we need to delete its carcass.  Note we cannot delete the thread
       // before now (for example, in NachOSThread::FinishThread()), because up to this
@@ -99,6 +97,9 @@ static void ConvertIntToHex (unsigned v, Console *console)
 void
 ExceptionHandler(ExceptionType which)
 {
+	// printf("%d\n", type);
+	if(currentThread ==  NULL)
+		printf("NO currentThread\n");
 	int type = machine->ReadRegister(2);
 	int memval, vaddr, printval, tempval, exp;
 	unsigned printvalus;        // Used for printing in hex
@@ -112,10 +113,6 @@ ExceptionHandler(ExceptionType which)
 	if ((which == SyscallException) && (type == SYScall_Halt)) {
 		DEBUG('a', "Shutdown, initiated by user program.\n");
 		interrupt->Halt();
-	}
-	else if((which == SyscallException) && (type == SYScall_Exit)){
-		DEBUG('a', "Shutdown, initiated by user program.\n");
-		interrupt->Halt();	
 	}
 	else if ((which == SyscallException) && (type == SYScall_PrintInt)) {
 		printval = machine->ReadRegister(4);
@@ -170,6 +167,8 @@ ExceptionHandler(ExceptionType which)
 		int parentsize = currentThread->space->VMpageSize()*PageSize;
 		ProcessAddrSpace *childspace = new ProcessAddrSpace(parentsize);
 
+		currentThread->childList[currentThread->numberOfChild] = child->GetPID();
+		currentThread->numberOfChild++;
 		//Allocate space to child
 		child->space = childspace;
 
@@ -191,6 +190,64 @@ ExceptionHandler(ExceptionType which)
 
 		//initial function
 		child->ThreadFork(InitialFunction, 0);
+	}
+	else if ((which == SyscallException) && (type == SYScall_Join)){
+		int childPID = machine->ReadRegister(4);
+		bool flag= false;
+		for(int i=0; i< currentThread->numberOfChild; i++){
+			if(childPID == currentThread->childList[i])
+				flag = true;
+		}
+		if(flag == false) 	machine->WriteRegister(2,-1);
+		else{
+			if(scheduler->exitCode[childPID] != -1000){
+				machine->WriteRegister(2,scheduler->exitCode[childPID]);
+			}
+			else{
+				scheduler->WaitingForChild->Append(currentThread);
+				IntStatus oldLevel = interrupt->SetLevel(IntOff);
+				currentThread->PutThreadToSleep();
+				(void)interrupt->SetLevel(oldLevel);
+			}
+		}
+		machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+		machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+		machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+	}
+	else if((which == SyscallException) && (type == SYScall_Exit)){
+		if(currentThread->GetPID() == 0){
+			interrupt->Halt();
+		}
+		if(currentThread != NULL){
+			int parentID = currentThread->GetPPID();
+			NachOSThread *curr;
+			int first , key ;
+			if(!scheduler->WaitingForChild->IsEmpty()){
+				curr =(NachOSThread *)scheduler->WaitingForChild->Remove();
+				first = curr->GetPID();
+				key = first;
+				do{
+					if(key == parentID){
+						scheduler->ThreadIsReadyToRun(curr);
+						break;
+					}
+					else {
+						scheduler->WaitingForChild->Append(curr);
+						curr=(NachOSThread * )scheduler->WaitingForChild->Remove();
+						key = curr->GetPID();
+						if(key == first)
+							break;
+					}
+				}while(1);
+			}
+		}
+		if(currentThread != NULL)
+			scheduler->exitCode[currentThread->GetPID()] = machine->ReadRegister(4);
+		currentThread->FinishThread();
+
+		machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+		machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+		machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);		
 	}
 	else if ((which == SyscallException) && (type == SYScall_GetPA)) {
 		int virtAddr = machine->ReadRegister(4);
@@ -226,7 +283,8 @@ ExceptionHandler(ExceptionType which)
 	}
 	else if((which == SyscallException) && (type == SYScall_GetPID)){
 		//ASSERT(0);
-		machine->WriteRegister(2, currentThread->GetPID());
+		if(currentThread != NULL)
+			machine->WriteRegister(2, currentThread->GetPID());
 		// Advance program counters.
 		machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
 		machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));

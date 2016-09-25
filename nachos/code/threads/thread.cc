@@ -41,6 +41,13 @@ NachOSThread::NachOSThread(char* threadName)
     stack = NULL;
     status = JUST_CREATED;
     pid = tid++;
+    numberOfChild = 0;
+    int i=0;
+    while(i <10) {
+        childList[i] = -1;
+        i++;
+    }
+    if(pid == 0) ppid = -1;
 #ifdef USER_PROGRAM
     space = NULL;
 #endif
@@ -133,7 +140,12 @@ NachOSThread::CheckOverflow()
 	ASSERT(*stack == STACK_FENCEPOST);
 #endif
 }
-
+int NachOSThread::GetPID(){
+    return pid;
+}
+int NachOSThread::GetPPID(){
+    return ppid;
+}
 //----------------------------------------------------------------------
 // NachOSThread::FinishThread
 // 	Called by ThreadRoot when a thread is done executing the 
