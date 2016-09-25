@@ -20,7 +20,7 @@
 #include "addrspace.h"
 #include "noff.h"
 int nextFreePage = 0;
-
+extern int StartingAddress = 0;
 //----------------------------------------------------------------------
 // SwapHeader
 // 	Do little endian to big endian conversion on the bytes in the 
@@ -63,8 +63,7 @@ ProcessAddrSpace::ProcessAddrSpace(OpenFile *executable)
     NoffHeader noffH;
     unsigned int i, size;
     
-    StartingAddress = 0;
-
+    int StartingPage;
     executable->ReadAt((char *)&noffH, sizeof(noffH), 0);
     if ((noffH.noffMagic != NOFFMAGIC) && 
 		(WordToHost(noffH.noffMagic) == NOFFMAGIC))
@@ -77,7 +76,7 @@ ProcessAddrSpace::ProcessAddrSpace(OpenFile *executable)
 						// to leave room for the stack
     numPagesInVM = divRoundUp(size, PageSize);
     size = numPagesInVM * PageSize;
-
+    StartingPage = StartingAddress/PageSize;
     ASSERT(numPagesInVM <= NumPhysPages);		// check we're not trying
 						// to run anything too big --
 						// at least until we have
@@ -89,7 +88,7 @@ ProcessAddrSpace::ProcessAddrSpace(OpenFile *executable)
     NachOSpageTable = new TranslationEntry[numPagesInVM];
     for (i = 0; i < numPagesInVM; i++) {
 	NachOSpageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
-	NachOSpageTable[i].physicalPage = i;
+	NachOSpageTable[i].physicalPage = i + StartingPage;
 	NachOSpageTable[i].valid = TRUE;
 	NachOSpageTable[i].use = FALSE;
 	NachOSpageTable[i].dirty = FALSE;
