@@ -129,7 +129,7 @@ ProcessAddrSpace::ProcessAddrSpace(int parentsize)
     unsigned int i, size;
     size = parentsize;
     numPagesInVM = size/PageSize;
-    ASSERT(2*numPagesInVM <= NumPhysPages);
+    ASSERT(nextFreePage + numPagesInVM <= NumPhysPages);
     NachOSpageTable = new TranslationEntry[numPagesInVM];
     for(i = 0; i < numPagesInVM; i++){
         NachOSpageTable[i].virtualPage = i;
