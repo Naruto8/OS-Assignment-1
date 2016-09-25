@@ -11,14 +11,13 @@
  */
 
 #include "syscall.h"
-
 int
 main()
 {
 	system_call_PrintString("hello world\n");
-	system_call_PrintString("Executed ");
-	system_call_PrintInt(system_call_GetTime());
-	system_call_PrintInt(system_call_GetNumInstr());
+/*	system_call_PrintString("Executed ");
+//	system_call_PrintInt(system_call_GetTime());
+//	system_call_PrintInt(system_call_GetNumInstr());
 	system_call_PrintString(" instructions.\n");
-	return 0;
+*/	return 0;
 }

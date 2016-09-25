@@ -31,6 +31,7 @@ NachOSscheduler::NachOSscheduler()
 { 
     readyThreadList = new List; 
     ThreadSleeping = new List;
+    ThreadJoinList = new List;
 } 
 
 //----------------------------------------------------------------------

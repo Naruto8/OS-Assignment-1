@@ -61,8 +61,6 @@ static void WriteDone(int arg) { writeDone->V(); }
 void InitialFunction(int arg){
       DEBUG('t', "Now in thread \"%s\"\n", currentThread->getName());
 
-		printf("hre\n");
-      // If the old thread gave up the processor because it was finishing,
       // we need to delete its carcass.  Note we cannot delete the thread
       // before now (for example, in NachOSThread::FinishThread()), because up to this
       // point, we were still running on the old thread's stack!
@@ -108,7 +106,6 @@ ExceptionHandler(ExceptionType which)
 		initializedConsoleSemaphores = true;
 	}
 	Console *console = new Console(NULL, NULL, ReadAvail, WriteDone, 0);;
-
 	if ((which == SyscallException) && (type == SYScall_Halt)) {
 		DEBUG('a', "Shutdown, initiated by user program.\n");
 		interrupt->Halt();
@@ -166,7 +163,7 @@ ExceptionHandler(ExceptionType which)
 	else if ((which == SyscallException) && (type == SYScall_Fork)){
 		NachOSThread *child = new NachOSThread("forkChild");
 		child->SetPPID(currentThread->GetPID());
-
+		currentThread->ChildList->Append(child);
 		int parentsize = currentThread->space->VMpageSize()*PageSize;
 		ProcessAddrSpace *childspace = new ProcessAddrSpace(parentsize);
 
@@ -191,6 +188,69 @@ ExceptionHandler(ExceptionType which)
 
 		//initial function
 		child->ThreadFork(InitialFunction, 0);
+	}
+	else if((which == SyscallException) && (type == SYScall_Join)){
+		int cpid = machine->ReadRegister(4);
+		if (currentThread->ChildList->IsEmpty()){
+			machine->WriteRegister(2,-1);
+		}
+		else  {
+			NachOSThread *curr;
+			int first , key ;
+		        curr =(NachOSThread *)currentThread->ChildList->Remove();
+			first = curr->GetPID();
+			key = first;
+			do{
+				if(key == cpid){
+					currentThread->ThreadJoin();
+					machine->WriteRegister(2,10);		
+					break;
+				}
+				else {
+					currentThread->ChildList->Append(curr);
+					curr=(NachOSThread * )currentThread->ChildList->Remove();
+					key = curr->GetPID();
+					if(key == first){
+						machine->WriteRegister(2,-1);
+						break;
+					}
+				}
+			}while(1);				
+			
+		}
+		// Advance program counters.
+		machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+		machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+		machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
+	}
+	else if((which == SyscallException) && (type == SYScall_Exit)){
+		int parentPID = currentThread->GetPPID();
+		printf("Hello");
+		if(!scheduler->ThreadJoinList->IsEmpty()){
+			NachOSThread *curr;
+			int first_pid,key;
+			curr = (NachOSThread *)scheduler->ThreadJoinList->Remove();
+			first_pid = curr->GetPID();
+			key = first_pid;
+			
+			do{
+				if(key == parentPID){
+					scheduler->ThreadIsReadyToRun(curr);
+					break;
+				}
+				else{
+					scheduler->ThreadJoinList->Append(curr);
+					curr=(NachOSThread *)scheduler->ThreadJoinList->Remove();
+					key = curr->GetPID();
+					if(key == first_pid) break;
+				}
+			}while(1);
+		}
+		currentThread->FinishThread();	
+		// Advance program counters.
+		machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
+		machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
+		machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
 	}
 	else if ((which == SyscallException) && (type == SYScall_GetPA)) {
 		int virtAddr = machine->ReadRegister(4);

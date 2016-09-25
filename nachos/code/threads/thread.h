@@ -104,7 +104,8 @@ class NachOSThread {
     int GetPID() { return (pid); }		//Gets the thread ID
     int GetPPID() { return (ppid); }		//Gets the ID of parent thread
     void SetPPID(int temp) { ppid = temp; }
-
+    List *ChildList;
+    void ThreadJoin ();
 // First frame on thread execution stack; 
   private:
 
@@ -150,5 +151,4 @@ void _ThreadRoot();
 // Stop running oldThread and start running newThread
 void _SWITCH(NachOSThread *oldThread, NachOSThread *newThread);
 }
-
 #endif // THREAD_H

@@ -41,6 +41,7 @@ NachOSThread::NachOSThread(char* threadName)
     stack = NULL;
     status = JUST_CREATED;
     pid = tid++;
+    ChildList = new List;
 #ifdef USER_PROGRAM
     space = NULL;
 #endif
@@ -53,6 +54,15 @@ void NachOSThread::CopyAddressSpaceToChild(NachOSThread *child){
 	machine->mainMemory[i + this->space->StartingAddress + (this->space->VMpageSize())*PageSize] = machine->mainMemory[i + this->space->StartingAddress];
 }
 #endif
+
+void NachOSThread::ThreadJoin(void){
+	scheduler->ThreadJoinList->Append(currentThread);
+	IntStatus oldLevel = interrupt->SetLevel(IntOff);
+	currentThread->PutThreadToSleep();
+	(void)interrupt->SetLevel(oldLevel);
+}
+
+
 //----------------------------------------------------------------------
 // NachOSThread::~NachOSThread
 // 	De-allocate a thread.
@@ -222,7 +232,6 @@ void
 NachOSThread::PutThreadToSleep ()
 {
     NachOSThread *nextThread;
-    
     ASSERT(this == currentThread);
     ASSERT(interrupt->getLevel() == IntOff);
     

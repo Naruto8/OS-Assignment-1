@@ -31,6 +31,7 @@ class NachOSscheduler {
     void Schedule(NachOSThread* nextThread);	// Cause nextThread to start running
     void Print();			// Print contents of ready list
  List *ThreadSleeping; 
+ List *ThreadJoinList;
   private:
     List *readyThreadList;  		// queue of threads that are ready to run,
 				// but not running
