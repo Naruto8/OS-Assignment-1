@@ -215,7 +215,8 @@ ExceptionHandler(ExceptionType which)
 		machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg)+4);
 	}
 	else if((which == SyscallException) && (type == SYScall_Exit)){
-		if(currentThread->GetPID() == 0){
+		currentThread->DecrementProcesses();
+		if(currentThread->GetPID() == 0 || currentThread->NumberOfProcesses() == 0){
 			interrupt->Halt();
 		}
 		if(currentThread != NULL){
@@ -251,35 +252,35 @@ ExceptionHandler(ExceptionType which)
 	}
 	else if ((which == SyscallException) && (type == SYScall_Exec)){
 		NachOSThread *child = new NachOSThread("ExecChild");
-                int parentsize = currentThread->space->VMpageSize()*PageSize;
-                char *file;
-                int i = 0;
-                vaddr = machine->ReadRegister(4);
+        int parentsize = currentThread->space->VMpageSize()*PageSize;
+        char *file;
+        int i = 0;
+        vaddr = machine->ReadRegister(4);
+        machine->ReadMem(vaddr, 1, &memval);
+        while ((*(char*)&memval) != '\0') {
+              	// writeDone->P() ;
+				 *(file+i) = (*(char*)&memval);
+                vaddr++;
+                i++;
                 machine->ReadMem(vaddr, 1, &memval);
-                while ((*(char*)&memval) != '\0') {
-                      	writeDone->P() ;
-			 *(file+i) = (*(char*)&memval);
-                        vaddr++;
-                        i++;
-                        machine->ReadMem(vaddr, 1, &memval);
-                }
-                ASSERT(i > 0);
-                OpenFile *exec = fileSystem->Open(file);
-                if (exec == NULL) printf("No such file for Exec!");
-                else {
-                        ProcessAddrSpace *exec_space = new ProcessAddrSpace(exec);
-                        //Set child's starting address
-                        exec_space->StartingAddress = currentThread->space->StartingAddress + parentsize + 1;
-                        delete exec;
-                        exec_space->InitUserCPURegisters();             // set the initial register values
-                        child->space = exec_space;
-                        //child_space->RestoreStateOnSwitch();             // load page table register
-                        machine->Run();                                 // jump to the user progam
-
-                }
-
-
-
+        }
+        ASSERT(i > 0);
+        printf("here\n");
+        OpenFile *exec = fileSystem->Open(file);
+        if (exec == NULL) printf("No such file for Exec!");
+        else {
+                ProcessAddrSpace *exec_space = new ProcessAddrSpace(exec);
+                //Set child's starting address
+                exec_space->StartingAddress = currentThread->space->StartingAddress + parentsize + 1;
+                delete exec;
+                threadToBeDestroyed = currentThread;
+           		currentThread->DecrementProcesses();
+                currentThread = child;
+                exec_space->InitUserCPURegisters();             // set the initial register values
+                child->space = exec_space;
+                child->space->RestoreStateOnSwitch();             // load page table register
+                machine->Run();                                 // jump to the user progam
+        }
 	}
 	else if ((which == SyscallException) && (type == SYScall_NumInstr)) {
 		machine->WriteRegister(2, machine->NumInstr());

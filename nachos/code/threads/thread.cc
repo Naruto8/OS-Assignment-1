@@ -24,6 +24,7 @@
 					// stack overflows
 
 int tid = 0;
+int numberOfProcesses = 0;
 
 //----------------------------------------------------------------------
 // NachOSThread::NachOSThread
@@ -32,7 +33,12 @@ int tid = 0;
 //
 //	"threadName" is an arbitrary string, useful for debugging.
 //----------------------------------------------------------------------
-
+int NachOSThread::NumberOfProcesses(){
+    return numberOfProcesses;
+}
+void NachOSThread::DecrementProcesses(){
+    numberOfProcesses--;
+}
 NachOSThread::NachOSThread(char* threadName)
 {
     name = threadName;
@@ -42,6 +48,7 @@ NachOSThread::NachOSThread(char* threadName)
     pid = tid++;
     numberOfChild = 0;
     int i=0;
+    numberOfProcesses++;
     while(i <10) {
         childList[i] = -1;
         i++;
