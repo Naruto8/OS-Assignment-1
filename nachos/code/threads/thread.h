@@ -37,6 +37,7 @@
 #ifndef THREAD_H
 #define THREAD_H
 
+#include "machine.h"
 #include "copyright.h"
 #include "utility.h"
 #include "list.h"
@@ -101,10 +102,12 @@ class NachOSThread {
     char* getName() { return (name); }
     void Print() { printf("%s, ", name); }
 
-    int GetPID() { return (pid); }		//Gets the thread ID
-    int GetPPID() { return (ppid); }		//Gets the ID of parent thread
+    int GetPID();		//Gets the thread ID
+    int GetPPID();		//Gets the ID of parent thread
     void SetPPID(int temp) { ppid = temp; }
-
+    int numInstr();     
+    int childList[10];
+    int numberOfChild;
 // First frame on thread execution stack; 
   private:
 

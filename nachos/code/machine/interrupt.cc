@@ -213,8 +213,7 @@ Interrupt::Idle()
     DEBUG('i', "Machine idling; checking for interrupts.\n");
     status = IdleMode;
     if (CheckIfDue(TRUE)) {		// check for any pending interrupts
-    	while (CheckIfDue(FALSE))	// check for any other pending 
-	    ;				// interrupts
+    	while (CheckIfDue(FALSE));	// check for any other pending 
         yieldOnReturn = FALSE;		// since there's nothing in the
 					// ready queue, the yield is automatic
         status = SystemMode;
@@ -299,7 +298,6 @@ Interrupt::CheckIfDue(bool advanceClock)
 	DumpState();
     PendingInterrupt *toOccur = 
 		(PendingInterrupt *)pending->SortedRemove(&when);
-
     if (toOccur == NULL)		// no pending interrupts
 	return FALSE;			
 
@@ -321,8 +319,9 @@ Interrupt::CheckIfDue(bool advanceClock)
     DEBUG('i', "Invoking interrupt handler for the %s at time %d\n", 
 			intTypeNames[toOccur->type], toOccur->when);
 #ifdef USER_PROGRAM
-    if (machine != NULL)
+    if (machine != NULL){
     	machine->DelayedLoad(0, 0);
+    }
 #endif
     inHandler = TRUE;
     status = SystemMode;			// whatever we were doing,

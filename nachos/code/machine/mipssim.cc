@@ -15,7 +15,7 @@
 #include "machine.h"
 #include "mipssim.h"
 #include "system.h"
-
+int count = 0;		// count for number of instructions 
 static void Mult(int a, int b, bool signedArith, int* hiPtr, int* loPtr);
 
 //----------------------------------------------------------------------
@@ -97,7 +97,8 @@ Machine::OneInstruction(Instruction *instr)
     int nextLoadReg = 0; 	
     int nextLoadValue = 0; 	// record delayed load operation, to apply
 				// in the future
-
+    count++;
+    numInstr = count;
     // Fetch instruction 
     if (!machine->ReadMem(registers[PCReg], 4, &raw))
 	return;			// exception occurred

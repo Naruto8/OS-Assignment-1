@@ -123,6 +123,7 @@ class Machine {
 
     void OneInstruction(Instruction *instr); 	
     				// Run one instruction of a user program.
+    int NumInstr() { return numInstr; } 
     void DelayedLoad(int nextReg, int nextVal);  	
 				// Do a pending delayed load (modifying a reg)
     
@@ -185,6 +186,7 @@ class Machine {
   private:
     bool singleStep;		// drop back into the debugger after each
 				// simulated instruction
+    int numInstr;     // Number of instructions carried out 
     int runUntilTime;		// drop back into the debugger when simulated
 				// time reaches this value
 };
