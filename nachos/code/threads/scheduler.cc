@@ -78,7 +78,7 @@ NachOSscheduler::ThreadWake (int time)
 	NachOSThread *thread;
 	int key;
 	thread =(NachOSThread *)ThreadSleeping->SortedRemove(&key);
-	if(key == time){
+	if(key <= time){
 		scheduler->ThreadIsReadyToRun(thread);
  		return 1;
 	}
